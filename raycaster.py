@@ -139,15 +139,139 @@ class Raycaster(object):
                             self.zbuffer[x] = sprite_d
                             #print(c)
 
-  def draw_player(self, xi, yi, w = 128, h = 128):
+  def draw_player(self, xi, yi, w = 260, h = 280):
         #Jugador first person
         for x in range(xi, xi + w):
             for y in range(yi, yi + h):
-                tx = int((x - xi) * 128/w)
-                ty = int((y - yi) * 128/h)
+                tx = int((x - xi) * 260/w)
+                ty = int((y - yi) * 280/h)
                 c = gun.get_at((tx, ty))
                 if c != (0, 0, 0, 0):
                     self.point(x, y, c)
+
+  #Referencia: https://pythonprogramming.net/pygame-start-menu-tutorial/
+  def text_objects(self, text, font):
+    textSurface = font.render(text, True, WHITE)
+    return textSurface, textSurface.get_rect()
+
+  def game_intro(self):
+        intro = True
+
+        while intro:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                    exit(0)
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_RETURN:
+                        intro = False
+                        self.game_loop()
+
+            screen.fill(BLACK)
+            largeText = pygame.font.Font('freesansbold.ttf', 55)
+            TextSurf, TextRect = self.text_objects(
+                "PROYECTO 2: RAYCASTER", largeText)
+            TextRect.center = (500, 100)
+            screen.blit(TextSurf, TextRect)
+
+            mediumText = pygame.font.Font('freesansbold.ttf', 25)
+            TextSurf, TextRect = self.text_objects(
+                "You have been surrounded by aliens and predators in the jungle", mediumText)
+            TextRect.center = (500, 250)
+            screen.blit(TextSurf, TextRect)
+
+            mediumText2 = pygame.font.Font('freesansbold.ttf', 25)
+            TextSurf, TextRect = self.text_objects(
+                "Get to the car to escape!", mediumText2)
+            TextRect.center = (500, 300)
+            screen.blit(TextSurf, TextRect)
+
+            smallText = pygame.font.Font('freesansbold.ttf', 20)
+            TextSurf, TextRect = self.text_objects(
+                "PRESS ENTER TO START", smallText)
+            TextRect.center = (500, 450)
+            screen.blit(TextSurf, TextRect)
+            pygame.display.update()
+
+  def game_loop(self):
+        playing = True
+        #Musica
+        pygame.mixer.init()
+        pygame.mixer.music.load('./Sounds/song.mp3')
+        pygame.mixer.music.play(-1)
+        pygame.mixer.music.set_volume(0.4)
+        while playing:
+            
+            if r.player["x"] >= 300 and r.player["y"] >= 400:
+                playing = False
+                self.game_won()
+
+            screen.fill((20, 20, 20))
+            r.render()
+
+            for e in pygame.event.get():
+                    if e.type == pygame.QUIT or (e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE):
+                        exit(0)
+                    if e.type == pygame.KEYDOWN:
+                        #Movimiento wasd
+                        #No permite atravesar paredes solo moverse a los lados y atras
+                        if r.close == False:
+                            
+                            if e.key == pygame.K_w:
+                                r.player["x"] += int(15 * cos(r.player["a"]))
+                                r.player["y"] += int(15 * sin(r.player["a"]))
+                        
+                        if e.key == pygame.K_a:
+                            r.player["a"] -= pi/15
+                        elif e.key == pygame.K_d:
+                            r.player["a"] += pi/15
+                        elif e.key == pygame.K_s:
+                            r.player["x"] -= int(15 * cos(r.player["a"]))
+                            r.player["y"] -= int(15 * sin(r.player["a"]))
+                        r.close = False
+
+            self.fps()
+            clock.tick(60)
+            pygame.display.update()
+
+  def game_won(self):
+        won = True
+
+        #Sound effect
+        pygame.mixer.music.load('./Sounds/car.mp3')
+        pygame.mixer.music.play(0)
+        pygame.mixer.music.set_volume(0.6)
+
+        while won:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                    exit(0)
+
+            screen.fill(BLACK)
+            largeText = pygame.font.Font('freesansbold.ttf', 55)
+            TextSurf, TextRect = self.text_objects(
+                "VICTORY!", largeText)
+            TextRect.center = (500, 100)
+            screen.blit(TextSurf, TextRect)
+
+            mediumText = pygame.font.Font('freesansbold.ttf', 25)
+            TextSurf, TextRect = self.text_objects(
+                "Thanks for playing!", mediumText)
+            TextRect.center = (500, 250)
+            screen.blit(TextSurf, TextRect)
+
+            smallText = pygame.font.Font('freesansbold.ttf', 20)
+            TextSurf, TextRect = self.text_objects(
+                "PRESS ESCAPE TO QUIT", smallText)
+            TextRect.center = (500, 450)
+            screen.blit(TextSurf, TextRect)
+            pygame.display.update()
+
+  def fps(self):
+        smallText = pygame.font.Font('freesansbold.ttf', 20)
+        TextSurf, TextRect = self.text_objects(
+            "FPS: " + str(int(clock.get_fps())), smallText)
+        TextRect.center = (260, 30)
+        screen.blit(TextSurf, TextRect)
 
   def render(self):
         for i in range(0, 1000):
@@ -175,39 +299,15 @@ class Raycaster(object):
                 if self.map[j][i] != ' ':
                     self.draw_rectangle(x, y, textures[self.map[j][i]])
 
-        self.point(int(self.player["x"]*0.5), int(self.player["y"]*0.5), (255, 255, 255))
+        self.point(int(self.player["x"]*0.4), int(self.player["y"]*0.4), (255, 255, 255))
         
-        self.draw_player(626, 350)
+        self.draw_player(576, 250)
 
 pygame.init()
 screen = pygame.display.set_mode((1000, 500), pygame.DOUBLEBUF|pygame.HWACCEL|pygame.HWSURFACE)
 screen.set_alpha(None)
+clock = pygame.time.Clock()
 r = Raycaster(screen)
 r.load_map('./map.txt')
+r.game_intro()
 
-while True:
-    screen.fill((20, 20, 20))
-    r.render()
-
-    for e in pygame.event.get():
-            if e.type == pygame.QUIT or (e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE):
-                exit(0)
-            if e.type == pygame.KEYDOWN:
-                #Movimiento wasd
-                #No permite atravesar paredes solo moverse a los lados y atras
-                if r.close == False:
-                    
-                    if e.key == pygame.K_w:
-                        r.player["x"] += int(15 * cos(r.player["a"]))
-                        r.player["y"] += int(15 * sin(r.player["a"]))
-                
-                if e.key == pygame.K_a:
-                    r.player["a"] -= pi/15
-                elif e.key == pygame.K_d:
-                    r.player["a"] += pi/15
-                elif e.key == pygame.K_s:
-                    r.player["x"] -= int(15 * cos(r.player["a"]))
-                    r.player["y"] -= int(15 * sin(r.player["a"]))
-                r.close = False
-
-    pygame.display.update()
