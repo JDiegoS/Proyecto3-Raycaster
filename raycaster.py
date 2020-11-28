@@ -7,6 +7,7 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 BACKGROUND = (0, 0, 0)
 
+#Sprites
 wall1 = pygame.image.load('./images/fence.png')
 wall2 = pygame.image.load('./images/grass.png')
 wall3 = pygame.image.load('./images/barrel.png')
@@ -14,6 +15,8 @@ wall4 = pygame.image.load('./images/oil.png')
 wall5 = pygame.image.load('./images/car.png')
 
 gun = pygame.image.load('./images/gun1.png')
+rambo = pygame.image.load('./images/rambo.png')
+hud = pygame.image.load('./images/hud.png')
 
 textures = {
   "1": wall1,
@@ -149,6 +152,25 @@ class Raycaster(object):
                 if c != (0, 0, 0, 0):
                     self.point(x, y, c)
 
+  def draw_hud(self, xi, yi, w = 240, h = 80):
+        #Jugador first person
+        for x in range(xi, xi + w):
+            for y in range(yi, yi + h):
+                tx = int((x - xi) * 240/w)
+                ty = int((y - yi) * 80/h)
+                #print(ty)
+                c = hud.get_at((tx, ty))
+                self.point(x, y, c)
+
+  def draw_rambo(self, xi, yi, w = 120, h = 120):
+        #Jugador first person
+        for x in range(xi, xi + w):
+            for y in range(yi, yi + h):
+                tx = int((x - xi) * 120/w)
+                ty = int((y - yi) * 120/h)
+                c = rambo.get_at((tx, ty))
+                self.point(x, y, c)
+    
   #Referencia: https://pythonprogramming.net/pygame-start-menu-tutorial/
   def text_objects(self, text, font):
     textSurface = font.render(text, True, WHITE)
@@ -302,6 +324,8 @@ class Raycaster(object):
         self.point(int(self.player["x"]*0.4), int(self.player["y"]*0.4), (255, 255, 255))
         
         self.draw_player(576, 250)
+        self.draw_rambo(880, 0)
+        self.draw_hud(640, 0)
 
 pygame.init()
 screen = pygame.display.set_mode((1000, 500), pygame.DOUBLEBUF|pygame.HWACCEL|pygame.HWSURFACE)
